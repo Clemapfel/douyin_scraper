@@ -80,27 +80,43 @@ async def update_video_data():
         video_id = await video_url_to_video_id(video_url)
         video_dir = out_dir + "/" + video_id
 
-        print("\n[LOG] Downloading video data for video " + video_id + "...")
-
         warn_if_target_dir_is_file(video_dir)
         if not os.path.isdir(video_dir):
             os.mkdir(video_dir)
 
+        metadata_download_success = False
         json_raw_path = video_dir + "/raw.json"
-        metadata = await download_video_data(video_url)
-        metadata["request_timestamp"] = datetime.timestamp(datetime.now())
-        json_raw_file = open(json_raw_path, "w")
-        json_raw_file.write(json.dumps(metadata))
-        json_raw_file.close()
-        print("[LOG] Wrote metadata to " + os.path.abspath(json_raw_path))
+        try:
+            metadata = await download_video_data(video_url)
+            metadata["request_timestamp"] = datetime.timestamp(datetime.now())
+            json_raw_file = open(json_raw_path, "w")
+            json_raw_file.write(json.dumps(metadata))
+            json_raw_file.close()
+            metadata_download_success = True
+        except:
+            metadata_download_success = False
+
+        if metadata_download_success:
+            print("[LOG] Wrote metadata to " + os.path.abspath(json_raw_path))
+        else:
+            print("[ERRO] Unable to download metadata for video at " + video_url)
 
         video_path = video_dir + "/video.mp4"
 
         if not os.path.isfile(video_path):
             download_link = await get_video_download_link(video_id)
-            req = requests.get(download_link, allow_redirects=True)
-            open(video_path, 'wb').write(req.content)
-            print("[LOG] Wrote video to" + os.path.abspath(video_path))
+            video_download_success = False
+            try:
+                req = requests.get(download_link, allow_redirects=True)
+                open(video_path, 'wb').write(req.content)
+                video_download_success = True
+            except:
+                video_download_success = False
+
+            if video_download_success:
+                print("[LOG] Wrote video to " + os.path.abspath(video_path))
+            else:
+                print("[ERROR] Unable to download video file for video at " + video_url)
         else:
             print("[LOG] Video already downloaded, skipping this entry...")
 
@@ -124,8 +140,11 @@ def update_csv():
     csv_writer = csv.DictWriter(csv_file, [])
     csv_writer_initialized = False
 
+    n_videos = 0
+
     for each in os.listdir("./out"):
 
+        video_id = each
         path = os.path.join("./out", each)
         if not os.path.isdir(path):
             continue
@@ -142,7 +161,7 @@ def update_csv():
         file = open(json_path, "r")
         metadata = json.load(file)
         items = dict()
-        items["video_id"] = path
+        items["video_id"] = video_id
         items["local_uri"] = os.path.abspath(path)
         items["time_accessed"] = timestamp.strftime("%d.%m.%Y %H:%M:%S")
         extract_keys_recursively(metadata, items)
@@ -153,9 +172,11 @@ def update_csv():
             csv_writer_initialized = True
 
         csv_writer.writerow(items)
+        n_videos += 1
 
     csv_file.close()
-    print("[LOG] Wrote csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
+    print("[LOG] Appended csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
+    print("[LOG] " + str(n_videos) + " videos processed")
     print("done.")
 
 # main
