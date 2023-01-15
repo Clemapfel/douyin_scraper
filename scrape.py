@@ -61,6 +61,7 @@ for line in open(sys.argv[1]).readlines():
 json_keys = []
 for line in open(sys.argv[2]).readlines():
     json_keys.append(line.split("\n")[0])
+
 async def update_video_data():
     """
     take video ids from argv[2] and download them and their metadata into ./out
@@ -104,7 +105,6 @@ async def update_video_data():
             print("[LOG] Video already downloaded, skipping this entry...")
 
         print("\n")
-
 
 def update_csv():
     """
