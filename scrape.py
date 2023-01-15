@@ -62,6 +62,9 @@ json_keys = []
 for line in open(sys.argv[2]).readlines():
     json_keys.append(line.split("\n")[0])
 async def update_video_data():
+    """
+    take video ids from argv[2] and download them and their metadata into ./out
+    """
 
     # create output directory structure
     out_dir = "./out"
@@ -104,7 +107,9 @@ async def update_video_data():
 
 
 def update_csv():
-    # parse ./out directory and assemble csv
+    """
+    parse ./out raw json files and assemble filtered csv
+    """
 
     out_dir = "./out"
     warn_if_target_dir_is_file(out_dir)
