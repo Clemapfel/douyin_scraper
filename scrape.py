@@ -5,8 +5,6 @@ import os
 import csv
 import requests
 from datetime import datetime
-
-import douyin_tiktok_scraper.scraper
 from douyin_tiktok_scraper.scraper import Scraper
 
 scraper = Scraper()
@@ -63,26 +61,16 @@ for line in open(sys.argv[1]).readlines():
 json_keys = []
 for line in open(sys.argv[2]).readlines():
     json_keys.append(line.split("\n")[0])
-async def main():
-
-    timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+async def update_video_data():
 
     # create output directory structure
     out_dir = "./out"
     warn_if_target_dir_is_file(out_dir)
 
-    print("[LOG] Initializing session output at " + os.path.abspath(out_dir))
-
     if not os.path.isdir(out_dir):
         os.mkdir("./out")
 
-    video_dicts = []
-
-    csv_file = open(out_dir + "/out_" + timestamp.strftime("%d_%m_%H_%M_%S") + ".csv", "w")
-    csv_writer = csv.DictWriter(csv_file, [])
-    csv_writer_initialized = False
-
-    # download and format metadata and video
+    # metadata and video into ./out
     for video_url in video_urls:
 
         video_id = await video_url_to_video_id(video_url)
@@ -103,10 +91,39 @@ async def main():
         print("[LOG] Wrote metadata to " + os.path.abspath(json_raw_path))
 
         video_path = video_dir + "/video.mp4"
-        download_link = await get_video_download_link(video_id)
-        req = requests.get(download_link, allow_redirects=True)
-        open(video_path, 'wb').write(req.content)
-        print("[LOG] Wrote video to" + os.path.abspath(video_path))
+
+        if not os.path.isfile(video_path):
+            download_link = await get_video_download_link(video_id)
+            req = requests.get(download_link, allow_redirects=True)
+            open(video_path, 'wb').write(req.content)
+            print("[LOG] Wrote video to" + os.path.abspath(video_path))
+        else:
+            print("[LOG] Video already downloaded, skipping this entry...")
+
+        print("\n")
+
+
+def update_csv():
+    # parse ./out directory and assemble csv
+
+    out_dir = "./out"
+    warn_if_target_dir_is_file(out_dir)
+
+    if not os.path.isdir(out_dir):
+        os.mkdir("./out")
+
+    timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+
+    video_dicts = []
+    csv_file = open("./out.csv", "w")
+    csv_writer = csv.DictWriter(csv_file, [])
+    csv_writer_initialized = False
+
+    for each in os.listdir("./out"):
+
+        path = os.path.join("./out", each)
+        if not os.path.isdir(path):
+            continue
 
         # extract values
         def extract_keys_recursively(dict_in, items):
@@ -116,9 +133,12 @@ async def main():
                 elif item[0] in json_keys:
                     items[item[0]] = item[1]
 
+        json_path = path + "/raw.json"
+        file = open(json_path, "r");
+        metadata = json.load(file)
         items = dict()
-        items["video_id"] = video_id
-        items["local_uri"] = os.path.abspath(video_dir)
+        items["video_id"] = path
+        items["local_uri"] = os.path.abspath(path)
         items["time_accessed"] = timestamp.strftime("%d.%m.%Y %H:%M:%S")
         extract_keys_recursively(metadata, items)
 
@@ -133,7 +153,14 @@ async def main():
     print("[LOG] Wrote csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
     print("done.")
 
-asyncio.run(main())
+# main
+asyncio.run(update_video_data())
+update_csv()
+
+
+
+
+
 
 
 
