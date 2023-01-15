@@ -17,21 +17,6 @@ async def download_video_data(url: str) -> dict:
     """
     return await scraper.hybrid_parsing(video_url=url)
 
-async def get_video_download_link(id: str) -> str:
-    """
-    get direct download link for video
-
-    :param url: link to video in the form https://www.douyin.com/video/<video id>
-    :return: dictionary with metadata
-    """
-
-    # super hacky, the download interface doesn't seem to be exposed so if this link ever changes
-    # this will break. Is there maybe a resource link somewhere in video data?
-
-    download_url_left = "https://api.douyin.wtf/download?url=https%3A%2F%2Fwww.douyin.com%2Fvideo%2F"
-    download_url_right = "&prefix=true&watermark=false"
-    return download_url_left + id + download_url_right
-
 async def video_url_to_video_id(url: str) -> str:
     """
     convert video url to douyin id
@@ -41,7 +26,22 @@ async def video_url_to_video_id(url: str) -> str:
     """
     return await scraper.get_douyin_video_id(url)
 
-def warn_if_target_dir_is_file(dir):
+async def get_video_download_link(id: str) -> str:
+    """
+    get direct download link for video
+
+    :param id: video id obtained by video_url_to_video_id
+    :return: direct download link
+    """
+
+    # super hacky, the download interface doesn't seem to be exposed so if this link ever changes
+    # this will break. Is there maybe a resource link somewhere in video data?
+
+    download_url_left = "https://api.douyin.wtf/download?url=https%3A%2F%2Fwww.douyin.com%2Fvideo%2F"
+    download_url_right = "&prefix=true&watermark=false"
+    return download_url_left + id + download_url_right
+
+def warn_if_target_dir_is_file(dir) -> None:
     """
     print a warning if a file of specified name already exists
 
@@ -52,17 +52,8 @@ def warn_if_target_dir_is_file(dir):
         print("[ERROR] File " + os.curdir() + dir + " already exists. Please delete/move it and rerun this script.")
         exit(1)
 
-
-# load video url batch form sys argument #1
-video_urls = []
-for line in open(sys.argv[1]).readlines():
-    video_urls.append(line.split("\n")[0])
-
-# load json key list from sys argument #2
-json_keys = []
-for line in open(sys.argv[2]).readlines():
-    json_keys.append(line.split("\n")[0])
-
+video_urls = [] # list of video urls
+json_keys = []  # list of keys, see raw.json for a full list of possible keys
 async def update_video_data():
     """
     take video ids from file at argv[1] and download them and their metadata into ./out
@@ -177,6 +168,22 @@ def update_csv():
     print("[LOG] " + str(n_videos) + " videos processed")
     print("done.")
 
-# main
+### MAIN ##################################################################################
+
+# load video urls and filter from argv[1] and argv[2] respectively
+if len(sys.argv) != 3:
+    print("[ERROR] Wrong number of arguments. Usage: `python3 scrape.py <video ids file>.txt <metadata keys file>.txt")
+    exit(1)
+
+for line in open(sys.argv[1]).readlines():
+    video_urls.append(line.split("\n")[0])
+
+for line in open(sys.argv[2]).readlines():
+    json_keys.append(line.split("\n")[0])
+
+if len(json_keys) == 0:
+    print("[ERROR] Metadata key file at " + os.path.abspath(sys.argv[2]) + "contains no keys. Exiting...")
+    exit(1)
+
 asyncio.run(update_video_data())
 update_csv()
