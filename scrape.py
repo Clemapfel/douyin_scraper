@@ -185,5 +185,8 @@ if len(json_keys) == 0:
     print("[ERROR] Metadata key file at " + os.path.abspath(sys.argv[2]) + "contains no keys. Exiting...")
     exit(1)
 
+# update ./out folder with metadata and video files
 asyncio.run(update_video_data())
+
+# run through ./out and collect filtered as .csv
 update_csv()
