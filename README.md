@@ -27,7 +27,8 @@ https://www.douyin.com/video/7188463948864261434
 ```
 ### 2. Specify Metadata Filter
 
-Past json keys into a file, henceforth assumed to be `douying_scraper/filter.txt`.
+Paste json keys into a file, henceforth assumed to be `douying_scraper/filter.txt`. These keys govern what keys fill be
+extracted from the raw metadata.
 
 Example:
 ```
