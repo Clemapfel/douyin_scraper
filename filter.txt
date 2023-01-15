@@ -2,4 +2,3 @@ digg_count
 play_count
 share_count
 create_time
-aweme_id
