@@ -9,6 +9,8 @@ git clone https://github.com/Clemapfel/douyin_scraper.git
 # Dependencies
 
 ```
+pip install json
+pip install csv
 pip install requests
 pip install douyin-tiktok-scraper
 ```
