@@ -51,7 +51,7 @@ python3 scrape.py video_ids.txt filter.txt
 
 Where `video_ids.txt` is the file from step 1, `filter.txt` the file from step 2, both of which are located in the folder same folder as `scrape.py`.
 
-Let the script run until the following appear:
+Let the script run until the following appears:
 ```
 Process finished with exit code 0
 ```
