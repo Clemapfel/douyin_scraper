@@ -139,7 +139,7 @@ def update_csv():
                     items[item[0]] = item[1]
 
         json_path = path + "/raw.json"
-        file = open(json_path, "r");
+        file = open(json_path, "r")
         metadata = json.load(file)
         items = dict()
         items["video_id"] = path
