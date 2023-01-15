@@ -19,7 +19,7 @@ pip install douyin-tiktok-scraper
 
 Paste video urls into a file, henceforth assumed to be `douyin_scraper/video_ids.txt`.
 
-Example:
+Example `video_ids.txt`:
 ```
 https://www.douyin.com/video/7188679476946029885
 https://www.douyin.com/video/7188514977211305277
@@ -30,12 +30,14 @@ https://www.douyin.com/video/7188463948864261434
 Paste json keys into a file, henceforth assumed to be `douying_scraper/filter.txt`. Data for these keys will be extracted 
 from the raw metadata into the output csv file.
 
-Example:
+Example `filter.txt`:
 ```
 digg_count
 play_count
 share_count
 ```
+
+For a full list of allowed keys, run the script once and inspect one of the `raw.json` files in `douyin_scraper/out`.
 
 ### 3. Execute Script
 
