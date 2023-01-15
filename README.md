@@ -1,5 +1,11 @@
 # Douyin Scraper
 
+# Installation
+
+```
+git clone https://github.com/Clemapfel/douyin_scraper.git
+```
+
 # Dependencies
 
 ```
@@ -40,7 +46,7 @@ In your console, navigate to `douyin_scraper/`, then execute:
 python3 scrape.py video_ids.txt filter.txt 
 ```
 
-Where `video_ids.txt` is the file from step 1, `filter.txt` the file from step 2.
+Where `video_ids.txt` is the file from step 1, `filter.txt` the file from step 2, both of which are located in the folder same folder as `scrape.py`
 
 Let the script run until the following appear:
 ```
