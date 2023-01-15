@@ -161,13 +161,3 @@ def update_csv():
 # main
 asyncio.run(update_video_data())
 update_csv()
-
-
-
-
-
-
-
-
-
-
