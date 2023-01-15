@@ -50,6 +50,7 @@ def warn_if_target_dir_is_file(dir):
     """
     if os.path.isfile(dir):
         print("[ERROR] File " + os.curdir() + dir + " already exists. Please delete/move it and rerun this script.")
+        exit(1)
 
 
 # load video url batch form sys argument #1
@@ -64,7 +65,7 @@ for line in open(sys.argv[2]).readlines():
 
 async def update_video_data():
     """
-    take video ids from argv[1] and download them and their metadata into ./out
+    take video ids from file at argv[1] and download them and their metadata into ./out
     """
 
     # create output directory structure
@@ -74,7 +75,6 @@ async def update_video_data():
     if not os.path.isdir(out_dir):
         os.mkdir("./out")
 
-    # metadata and video into ./out
     for video_url in video_urls:
 
         video_id = await video_url_to_video_id(video_url)
@@ -99,11 +99,11 @@ async def update_video_data():
         if metadata_download_success:
             print("[LOG] Wrote metadata to " + os.path.abspath(json_raw_path))
         else:
-            print("[ERRO] Unable to download metadata for video at " + video_url)
+            print("[ERROR] Unable to download metadata for video at " + video_url)
 
         video_path = video_dir + "/video.mp4"
 
-        if not os.path.isfile(video_path):
+        if not os.path.isfile(video_path): # prevent redownloading if video already exists, metadata is updated though
             download_link = await get_video_download_link(video_id)
             video_download_success = False
             try:
@@ -134,13 +134,11 @@ def update_csv():
         os.mkdir("./out")
 
     timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+    n_videos = 0
 
-    video_dicts = []
     csv_file = open("./out.csv", "w")
     csv_writer = csv.DictWriter(csv_file, [])
     csv_writer_initialized = False
-
-    n_videos = 0
 
     for each in os.listdir("./out"):
 
@@ -149,7 +147,7 @@ def update_csv():
         if not os.path.isdir(path):
             continue
 
-        # extract values
+        # extract values from json dict, recursive since some items are dicts themself
         def extract_keys_recursively(dict_in, items):
             for item in dict_in.items():
                 if isinstance(item[1], dict):
@@ -175,7 +173,7 @@ def update_csv():
         n_videos += 1
 
     csv_file.close()
-    print("[LOG] Appended csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
+    print("[LOG] Wrote csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
     print("[LOG] " + str(n_videos) + " videos processed")
     print("done.")
 
