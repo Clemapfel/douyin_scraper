@@ -64,7 +64,7 @@ for line in open(sys.argv[2]).readlines():
 
 async def update_video_data():
     """
-    take video ids from argv[2] and download them and their metadata into ./out
+    take video ids from argv[1] and download them and their metadata into ./out
     """
 
     # create output directory structure
