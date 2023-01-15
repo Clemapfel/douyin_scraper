@@ -182,7 +182,7 @@ for line in open(sys.argv[2]).readlines():
     json_keys.append(line.split("\n")[0])
 
 if len(json_keys) == 0:
-    print("[ERROR] Metadata key file at " + os.path.abspath(sys.argv[2]) + "contains no keys. Exiting...")
+    print("[ERROR] Metadata key file at " + os.path.abspath(sys.argv[2]) + " contains no keys. Exiting...")
     exit(1)
 
 # update ./out folder with metadata and video files
