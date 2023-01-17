@@ -26,6 +26,15 @@ async def video_url_to_video_id(url: str) -> str:
     """
     return await scraper.get_douyin_video_id(url)
 
+def video_id_to_video_url(id: str) -> str:
+    """
+    convert video id to douyin link
+
+    :param id: id
+    :return: https://www.douyin.com/video/<video id>
+    """
+    return "https://www.douyin.com/video/" + id
+
 async def get_video_download_link(id: str) -> str:
     """
     get direct download link for video
@@ -52,33 +61,45 @@ def warn_if_target_dir_is_file(dir) -> None:
         print("[ERROR] File " + os.curdir() + dir + " already exists. Please delete/move it and rerun this script.")
         exit(1)
 
-video_urls = [] # list of video urls
+video_urls = []  # list of video urls
 json_keys = []  # list of keys, see raw.json for a full list of possible keys
-async def update_video_data():
-    """
-    take video ids from file at argv[1] and download them and their metadata into ./out
-    """
 
-    # create output directory structure
+async def initialize_out_directory():
+
     out_dir = "./out"
     warn_if_target_dir_is_file(out_dir)
 
     if not os.path.isdir(out_dir):
-        os.mkdir("./out")
+        os.mkdir(out_dir)
 
     for video_url in video_urls:
 
         video_id = await video_url_to_video_id(video_url)
         video_dir = out_dir + "/" + video_id
 
-        warn_if_target_dir_is_file(video_dir)
-        if not os.path.isdir(video_dir):
+        if not os.path.isdir(os.path.abspath(video_dir)):
             os.mkdir(video_dir)
+
+async def update_video_data():
+
+    # create output directory structure
+    out_dir = "./out"
+    warn_if_target_dir_is_file(out_dir)
+
+    for video_id in os.listdir(out_dir):
+
+        video_dir = os.path.join(out_dir, video_id)
+
+        try:
+            if not os.path.isdir(video_dir):
+                os.mkdir(video_dir)
+        except:
+            continue
 
         metadata_download_success = False
         json_raw_path = video_dir + "/raw.json"
         try:
-            metadata = await download_video_data(video_url)
+            metadata = await download_video_data(video_id_to_video_url(video_id))
             metadata["request_timestamp"] = datetime.timestamp(datetime.now())
             json_raw_file = open(json_raw_path, "w", encoding="utf-8")
             json_raw_file.write(json.dumps(metadata))
@@ -90,9 +111,9 @@ async def update_video_data():
         if metadata_download_success:
             print("[LOG] Wrote metadata to " + os.path.abspath(json_raw_path))
         else:
-            print("[ERROR] Unable to download metadata for video at " + video_url)
+            print("[ERROR] Unable to download metadata for video at " + video_id_to_video_url(video_id))
 
-        video_path = video_dir + "/video.mp4"
+        video_path = os.path.join(video_dir, "video.mp4")
 
         if not os.path.isfile(video_path): # prevent redownloading if video already exists, metadata is updated though
             download_link = await get_video_download_link(video_id)
@@ -107,7 +128,7 @@ async def update_video_data():
             if video_download_success:
                 print("[LOG] Wrote video to " + os.path.abspath(video_path))
             else:
-                print("[ERROR] Unable to download video file for video at " + video_url)
+                print("[ERROR] Unable to download video file for video #" + video_id)
         else:
             print("[LOG] Video already downloaded, skipping this entry...")
 
@@ -136,7 +157,7 @@ def update_csv():
         video_id = each
         path = os.path.join("./out", each)
         if not os.path.isdir(path):
-            continue
+            print("triggered")
 
         # extract values from json dict, recursive since some items are dicts themself
         def extract_keys_recursively(dict_in, items):
@@ -158,10 +179,15 @@ def update_csv():
                         items[item[0]] = value
 
         json_path = path + "/raw.json"
-        file = open(json_path, "r", encoding="utf-8")
-        metadata = json.load(file)
+
+        try:
+            file = open(json_path, "r", encoding="utf-8")
+            metadata = json.load(file)
+        except:
+            continue
+
         items = dict()
-        items["video_id"] = video_id
+        items["video_url"] = video_id_to_video_url(video_id)
         items["local_uri"] = os.path.abspath(path)
         items["time_accessed"] = timestamp.strftime("%d.%m.%Y %H:%M:%S")
         extract_keys_recursively(metadata, items)
@@ -196,8 +222,6 @@ if len(json_keys) == 0:
     print("[ERROR] Metadata key file at " + os.path.abspath(sys.argv[2]) + " contains no keys. Exiting...")
     exit(1)
 
-# update ./out folder with metadata and video files
+asyncio.run(initialize_out_directory())
 asyncio.run(update_video_data())
-
-# run through ./out and collect filtered as .csv
 update_csv()
