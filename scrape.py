@@ -80,7 +80,7 @@ async def update_video_data():
         try:
             metadata = await download_video_data(video_url)
             metadata["request_timestamp"] = datetime.timestamp(datetime.now())
-            json_raw_file = open(json_raw_path, "w")
+            json_raw_file = open(json_raw_path, "w", encoding="utf-8")
             json_raw_file.write(json.dumps(metadata))
             json_raw_file.close()
             metadata_download_success = True
@@ -127,7 +127,7 @@ def update_csv():
     timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
     n_videos = 0
 
-    csv_file = open("./out.csv", "w")
+    csv_file = open("./out.csv", "w", encoding="utf-8")
     csv_writer = csv.DictWriter(csv_file, [])
     csv_writer_initialized = False
 
@@ -144,10 +144,21 @@ def update_csv():
                 if isinstance(item[1], dict):
                     extract_keys_recursively(item[1], items)
                 elif item[0] in json_keys:
-                    items[item[0]] = item[1]
+                    value = item[1]
+                    if (isinstance(value, str)):
+                        formatted = ""
+                        for i in range(0, len(value)):
+                            c = value[i]
+                            if c == ",":
+                                formatted += " "
+                            else:
+                                formatted += c
+                        items[item[0]] = formatted
+                    else:
+                        items[item[0]] = value
 
         json_path = path + "/raw.json"
-        file = open(json_path, "r")
+        file = open(json_path, "r", encoding="utf-8")
         metadata = json.load(file)
         items = dict()
         items["video_id"] = video_id

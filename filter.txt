@@ -1,3 +1,16 @@
+desc
 digg_count
 play_count
 share_count
+collect_count
+comment_count
+share_count
+video_duration
+title
+author
+owner_nickname
+nickname
+signature
+enterprise_verify_reason
+author_status
+verification_type
