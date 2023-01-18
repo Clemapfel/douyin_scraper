@@ -199,7 +199,8 @@ def update_csv():
     # copy csv without adding another dependency
 
     csv_file = open(csv_file_dir, "r", encoding="utf-8")
-    csv_file_copy = open("./out_" + timestamp + ".csv", "w", encoding="utf-8")
+    csv_file_copy_dir = "./out_" + timestamp + ".csv"
+    csv_file_copy = open(csv_file_copy_dir, "w", encoding="utf-8")
 
     for line in csv_file.readlines():
         csv_file_copy.write(line)
@@ -207,7 +208,7 @@ def update_csv():
     csv_file.close()
     csv_file_copy.close()
 
-    print("[LOG] Wrote csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
+    print("[LOG] Wrote csv output for session to " + os.path.abspath(csv_file_copy_dir))
     print("[LOG] " + str(n_videos) + " videos processed")
     print("done.")
 
