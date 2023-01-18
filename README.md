@@ -58,8 +58,6 @@ Process finished with exit code 0
 
 ### 4. Collect Output
 
-A filtered .csv will have appeared as `douyin_scraper/out.csv`. Furthermore, the folder `douyin_scraper/out` will have 
-been created, it contains the raw metadata and video files. Do not modify this folder, as it may mess up the script.
-
-One column in `out.csv` is named `local_uri`. This column contains a link to the downloaded video file on your local 
-machine. 
+For each script run, a new folder in `./out` will be created, each containing the videos and video metadata for all videos
+in `video_ids.txt`. Furthermore, an a `.csv` with the current time in the format `YYYY-MM-DD_hh:mm` in its name that contains
+the values for all keys specified by `filter.txt` will appear in the same directory as the script.
