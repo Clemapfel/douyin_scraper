@@ -64,9 +64,13 @@ def warn_if_target_dir_is_file(dir) -> None:
 video_urls = []  # list of video urls
 json_keys = []  # list of keys, see raw.json for a full list of possible keys
 
+timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now())).strftime("%Y-%m-%d_%H:%M")
+out_dir = os.path.abspath("./out/" + timestamp)
 async def initialize_out_directory():
 
-    out_dir = "./out"
+    if not os.path.isdir(os.path.abspath("./out")):
+        os.mkdir("./out")
+
     warn_if_target_dir_is_file(out_dir)
 
     if not os.path.isdir(out_dir):
@@ -83,9 +87,6 @@ async def initialize_out_directory():
 async def update_video_data():
 
     # create output directory structure
-    out_dir = "./out"
-    warn_if_target_dir_is_file(out_dir)
-
     for video_id in os.listdir(out_dir):
 
         video_dir = os.path.join(out_dir, video_id)
@@ -138,26 +139,19 @@ def update_csv():
     """
     parse ./out raw json files and assemble filtered csv
     """
-
-    out_dir = "./out"
-    warn_if_target_dir_is_file(out_dir)
-
-    if not os.path.isdir(out_dir):
-        os.mkdir("./out")
-
-    timestamp = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
     n_videos = 0
 
-    csv_file = open("./out.csv", "w", encoding="utf-8")
+    csv_file_dir = os.path.join(out_dir, "out.csv")
+    csv_file = open(csv_file_dir, "w", encoding="utf-8")
     csv_writer = csv.DictWriter(csv_file, [])
     csv_writer_initialized = False
 
-    for each in os.listdir("./out"):
+    for each in os.listdir(out_dir):
 
         video_id = each
-        path = os.path.join("./out", each)
+        path = os.path.join(out_dir, each)
         if not os.path.isdir(path):
-            print("triggered")
+            continue
 
         # extract values from json dict, recursive since some items are dicts themself
         def extract_keys_recursively(dict_in, items):
@@ -189,7 +183,7 @@ def update_csv():
         items = dict()
         items["video_url"] = video_id_to_video_url(video_id)
         items["local_uri"] = os.path.abspath(path)
-        items["time_accessed"] = timestamp.strftime("%d.%m.%Y %H:%M:%S")
+        items["time_accessed"] = datetime.fromtimestamp(datetime.timestamp(datetime.now())).strftime("%d.%m.%Y %H:%M:%S")
         extract_keys_recursively(metadata, items)
 
         if not csv_writer_initialized:
@@ -201,6 +195,18 @@ def update_csv():
         n_videos += 1
 
     csv_file.close()
+
+    # copy csv without adding another dependency
+
+    csv_file = open(csv_file_dir, "r", encoding="utf-8")
+    csv_file_copy = open("./out_" + timestamp + ".csv", "w", encoding="utf-8")
+
+    for line in csv_file.readlines():
+        csv_file_copy.write(line)
+
+    csv_file.close()
+    csv_file_copy.close()
+
     print("[LOG] Wrote csv output for session to " + os.path.abspath(out_dir + "/out.csv"))
     print("[LOG] " + str(n_videos) + " videos processed")
     print("done.")
